@@ -246,9 +246,6 @@ void add_books_Cat()
       books.push_back({}) ;
       cat_num["Programming"] = 0 ;
       cat_num["Marketing"] = 1 ;
-      // string name, author, category ;
-      // int num ;
-      // vector<string> pages ;
       vector<int> readers ;
       book cpp( "cpp", "Sanad", "Programming", 4, { "Start", "variables", "loops", "arrays"}) ;
       books[0].push_back(cpp) ;
@@ -256,16 +253,6 @@ void add_books_Cat()
       books[0].push_back(java) ;
       book Digital( "Digital_Marketing", "Ahmed", "Marketing", 3, { "Start", "About", "Why_Marketing"}) ;
       books[1].push_back(Digital) ;
-      // data_base[{username, password}] = users.size() ;
-      // users.push_back(admin1) ;
-
-      // username = "Sanad_jr2", password = "**" ;
-      // data_base[{username, password}] = users.size() ;
-      // users.push_back(admin2) ;
-
-      // username = "Sanad_jr3", password = "***" ;
-      // data_base[{username, password}] = users.size() ;
-      // users.push_back(admin3) ;
 }
 void start_session( user &person, int num )
 {
@@ -520,11 +507,5 @@ int main()
             else
                   Admin_view( person ) ;
       }
-      // else
-      //       Admin_view( person ) ;
-      
-
-
-
       return 0 ;
 }
