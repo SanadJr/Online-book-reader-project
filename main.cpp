@@ -1,0 +1,530 @@
+#include <bits/stdc++.h>
+using namespace std ;
+
+class book ;
+class user ;
+class session ;
+map<pair<string,string>,int> data_base ; // Take user name and password then pop the user id.
+vector<string> categories ;
+map<string,int> cat_num ;
+vector<vector<book>> books ;
+class book
+{
+      private:
+            string name ;
+            string author ;
+            string category ;
+            int number_of_pages ;
+            vector<string> pages ;
+            vector<int> readers ;
+      public:
+            book()
+            {
+
+            }
+            book ( string name, string author, string category, int num, vector<string>pages )
+            {
+                  this->name = name ;
+                  this->author = author ;
+                  this->category = category ;
+                  number_of_pages = num ;
+                  this->pages = pages ;
+            }
+            int get_num_of_pages()
+            {
+                  return number_of_pages ;
+            }
+            string get_name()
+            {
+                  return name ;
+            }
+            void Details()
+            {
+                  cout << "Name: " << name << '\n' ;
+                  cout << "Author: " << author << '\n' ;
+                  cout << "Category: " << category << '\n' ;
+                  cout << "Number of pages: " << number_of_pages << '\n' ;
+            }
+            string view_page( int i )
+            {
+                  return pages[i-1] ;
+            }
+            int get_category ()
+            {
+                  return cat_num[category] ;
+            }
+            // void add_reader ( )
+            friend istream &operator >> ( istream &in, book &New ) ;
+} ;
+istream &operator >> ( istream &in, book &New )
+{
+      cout << "Enter book name: ", in >> New.name ;
+      cout << "Enter book category: ", in >> New.category ;
+      if ( cat_num.find(New.category) == cat_num.end() )
+      {
+            cat_num[New.category] = categories.size() ;
+            categories.push_back(New.category) ;
+            books.push_back({}) ;
+      }
+      cout << "Enter book author: ", in >> New.author ;
+      cout << "Enter How many pages: ", in >> New.number_of_pages ;
+      string page ;
+      for ( int i = 0 ; i < New.number_of_pages ; i++ )
+      {
+            cout << "Page #1 : " ;
+            in >> page ;
+            New.pages.push_back( page ) ;
+      }
+      return in ;
+}
+class session
+{
+      private:
+            string category ;
+            book Book ;
+            int last_page ;
+      public:
+            session()
+            {
+
+            }
+            session ( string catogory, book Book, int last_page )
+            {
+                  this->category = category ;
+                  this->Book = Book ;
+                  this->last_page = last_page ;
+            }
+            void next_page()
+            {
+                  last_page++ ;
+            }
+            void pervious_page()
+            {
+                  last_page-- ;
+            }
+            int get_last_page()
+            {
+                  return last_page ;
+            }
+            book get_book ()
+            {
+                  return Book ;
+            }
+            string get_category()
+            {
+                  return category ;
+            }
+            friend ostream &operator <<( ostream &out, session S ) ;
+} ;
+ostream &operator <<( ostream &out, session S )
+{
+      out << S.category << " -- " << S.Book.get_name() << " -- " <<  " Stopped at page #" << S.last_page ;
+      return out ;
+}
+class user
+{
+      private:
+            string name ;
+            string email ;
+            string username ;
+            bool role ; //admin --> ( 1 ) or reader --> ( 0 ).
+            vector<session> my_sessions ;
+      public:
+            user ( string name, bool role, string email, string username )
+            {
+                  this->name = name ;
+                  this->role = role ;
+                  this->email = email ;
+                  this->username = username ;
+            }
+            void add_book ( )
+            {
+                  book New ;
+                  cin >> New ;
+            }
+            string get_name ()
+            {
+                  return name ;
+            }
+            string get_username()
+            {
+                  return username ;
+            }
+            string get_email()
+            {
+                  return email ;
+            }
+            string get_role()
+            {
+                  return ( role ? "Admin" : "Reader" ) ;
+            }
+            void add_session ( session New )
+            {
+                  my_sessions.push_back( New ) ;
+                  cout << "Debug " << my_sessions.size() << '\n' ;
+            }
+            vector<session> &get_my_sessions ()
+            {
+                  return my_sessions ;
+            }
+} ;
+vector<user> users ;
+int login ()
+{
+      string username, password ;
+      cout << "Enter user name: ", cin >> username ;
+      cout << "Enter password: ", cin >> password ;
+      if ( cin.fail() || data_base.find({username, password}) == data_base.end() )
+      {
+            cout << "Wrong username or password!\n" ;
+            return -1 ;
+      }
+      return data_base[{username, password}] ;
+}
+int signup ()
+{
+      string username, password, name, email ;
+      cout << "Enter user name: ", cin >> username ;
+      cout << "Enter password: ", cin >> password ;
+      cout << "Enter name: ", cin >> name ;
+      cout << "Enter email: ", cin >> email ;
+      if ( cin.fail() )
+      {
+            cout << "Please insert valid data!\n" ;
+            signup() ;
+      }
+      user New_user ( name, 0, email, username ) ;
+      users.push_back( New_user ) ;
+      data_base[{username, password}] = users.size() - 1 ;
+      return users.size() - 1 ;
+}
+int start()
+{
+      cout << "**_*____________^_^_____________*_**\n" ;
+      cout << "Welcome to SANAD online book reader!\n" ;
+      cout << "Menu\n" ;
+      cout << "1 login\n2 sign up\n3 exit\n" ;
+      cout << "Enter your choice: " ;
+      int choice ;
+      cin >> choice ;
+      cout << '\n' ;
+      int id ;
+      if ( choice == 1 )
+      {
+            id = login() ;
+            if ( id == -1 )
+                  start() ;
+      }
+      else if ( choice == 2 )
+            id = signup() ;
+      else
+            exit(0) ;
+
+      return id ;
+}
+void add_admins()
+{
+      string username, password ;
+      user admin1( "Sanad", 1, "Sanad@gmail.com", "Sanad_jr"), admin2( "Sanad2", 1, "Sanad@gmail.com", "Sanad_jr2"), admin3( "Sanad3", 1, "Sanad@gmail.com", "Sanad_jr3") ;
+      username = "Sanad_jr", password = "*" ;
+      data_base[{username, password}] = users.size() ;
+      users.push_back(admin1) ;
+
+      username = "Sanad_jr2", password = "**" ;
+      data_base[{username, password}] = users.size() ;
+      users.push_back(admin2) ;
+
+      username = "Sanad_jr3", password = "***" ;
+      data_base[{username, password}] = users.size() ;
+      users.push_back(admin3) ;
+}
+void add_books_Cat()
+{
+      categories.push_back( "Programming" ) ;
+      categories.push_back( "Marketing" ) ;
+      books.push_back({}) ;
+      books.push_back({}) ;
+      cat_num["Programming"] = 0 ;
+      cat_num["Marketing"] = 1 ;
+      // string name, author, category ;
+      // int num ;
+      // vector<string> pages ;
+      vector<int> readers ;
+      book cpp( "cpp", "Sanad", "Programming", 4, { "Start", "variables", "loops", "arrays"}) ;
+      books[0].push_back(cpp) ;
+      book java( "java", "Sanad", "Programming", 4, { "Start", "variables", "loops", "arrays"}) ;
+      books[0].push_back(java) ;
+      book Digital( "Digital_Marketing", "Ahmed", "Marketing", 3, { "Start", "About", "Why_Marketing"}) ;
+      books[1].push_back(Digital) ;
+      // data_base[{username, password}] = users.size() ;
+      // users.push_back(admin1) ;
+
+      // username = "Sanad_jr2", password = "**" ;
+      // data_base[{username, password}] = users.size() ;
+      // users.push_back(admin2) ;
+
+      // username = "Sanad_jr3", password = "***" ;
+      // data_base[{username, password}] = users.size() ;
+      // users.push_back(admin3) ;
+}
+void start_session( user &person, int num )
+{
+      session &s = person.get_my_sessions()[num] ;
+      while ( true )
+      {
+            int curr = s.get_last_page() ;
+            cout << "Page " << curr << '\n' ;
+            cout << s.get_book().view_page( curr ) << '\n' ;
+            int CH = 1 ;
+            if ( curr < s.get_book().get_num_of_pages() )
+                  cout << CH << " - Next page\n", CH++ ;
+            if ( curr > 1 )
+                  cout << CH << " - Previous page\n", CH++ ;
+            cout << CH << " - End session\n" ;
+
+            int choice ;
+            cin >> choice ;
+            cout << '\n' ;
+            if ( cin.fail() || ! ( choice >= 1 && choice <= CH ) )
+            {
+                  cout << "Please enter a number in range [ 1 - " << CH << " ]!\n" ;
+                  continue;
+            }
+            if ( choice == 1 && curr < s.get_book().get_num_of_pages() )
+                  s.next_page() ;
+            else if ( choice == 1 )
+                  s.pervious_page() ;
+            else if ( choice == 2 && CH == 3 )
+                  s.pervious_page() ;
+            else
+            {
+                  return ;
+            }
+      }      
+
+}
+void select_book ( user &person, book &Book, int category )
+{
+      Book.Details() ;
+      cout << '\n' ;
+      cout << "1 - Start session\n2 - Previous page\n" ;
+      int choice ;
+      cin >> choice ;
+      cout << '\n' ;
+      if ( cin.fail() || !( choice == 1 || choice == 2 ) )
+      {
+            cout << "Please enter a number in range [ 1 - 2 ]!\n" ;
+            select_book( person, Book, category ) ;
+      }
+      if ( choice == 2 )
+            return ;
+      else
+      {
+            person.add_session( session(categories[category], Book, 1) ) ; 
+            cout << person.get_my_sessions().size()-1 << '\n' ;
+            start_session( person, person.get_my_sessions().size()-1 ) ;
+      }
+}
+void list_books( user &person, int category )
+{
+      int number = books[category].size() ;
+      cout << "There are found " << number << " books in " << categories[category] << " category\n" ;
+      for ( int i = 0 ; i < number ; i++ )
+      {
+            cout << i+1 << " - " << books[category][i].get_name() << '\n' ;
+      }
+      cout << '\n' ;
+      cout << number + 1 << " - Previous page\n\n" ;
+      cout << "Enter your choice: " ;
+      int choice ;
+      cin >> choice ;
+      cout << '\n' ;
+      if ( cin.fail() || !( choice >= 1 && choice <= number + 1 ) )
+      {
+            cout << "Please enter a number in range [ 1 - " << number + 1 << " ]!\n" ;
+            list_books( person, category ) ;
+      }
+      if ( choice == number + 1 )
+            return ;
+      else
+      {
+            select_book( person, books[category][choice-1], category ) ;   
+            list_books( person, category ) ;
+      }   
+}
+void View_categories( user &person )
+{
+      int number = categories.size() ;
+      cout << "There are found " << number << " categories\n" ;
+      for ( int i = 0 ; i < number ; i++ )
+      {
+            cout << i+1 << " - " << categories[i] << '\n' ;
+      }
+      cout << '\n' ;
+      cout << number + 1 << " - Previous page\n" ;
+      cout << "Enter your choice: " ;
+      int choice ;
+      cin >> choice ;
+      cout << '\n' ;
+      if ( cin.fail() || !( choice >= 1 && choice <= number + 1 ) )
+      {
+            cout << "Please enter a number in range [ 1 - " << number + 1 << " ]!\n" ;
+            View_categories( person ) ;
+      }
+      if ( choice == number + 1 )
+            return ;
+      else
+      {
+            list_books( person, choice - 1 ) ;
+            View_categories( person ) ;
+      }
+}
+void Reading_history ( user &person )
+{
+      while ( person.get_my_sessions().empty() )
+      {
+            cout << "You do not have any reading history!\n\n" ;
+            cout << "1 - List available book categories\n2 - Previous page\n" ;
+            cout << "Enter your choice: " ;
+            int choice ;
+            cin >> choice ;
+            cout << '\n' ;
+            if ( cin.fail() || !( choice == 1 || choice == 2 ) )
+            {
+                  cout << "Please enter a number in range [ 1 - 2 ]!\n" ;
+                  continue;
+            }
+            if ( choice == 1 )
+            {
+                  View_categories( person ) ;
+                  Reading_history( person ) ;
+                  break ;
+            }
+            else
+            {
+                  return ;
+            }
+      }
+      vector<session> Sessions = person.get_my_sessions() ;
+      int number = Sessions.size() ;
+      cout << "You have " << number << " sessions\n" ;
+      for ( int i = 0 ; i < number ; i++ )
+      {
+            cout << i+1 << Sessions[i] << '\n' ;
+      }
+      cout << '\n' ;
+      cout << number + 1 << " Previous page\n" ;
+      cout << "Enter your choice : " ;
+      int choice ;
+      cin >> choice ;
+      cout << '\n' ;
+      if ( cin.fail() || !( choice >= 1 || choice <= number + 1 ) )
+      {
+            cout << "Please enter a number in range [ 1 - " << number + 1 << " ]!\n" ;
+      }
+      if ( choice == number + 1 )
+            return ;
+      else
+      {
+            start_session( person, choice - 1 ) ;
+      }
+      
+
+}
+void Reader_view( user &person )
+{
+      cout << "Hello " << person.get_name() << " - " << person.get_role() << " view\n" ;
+      cout << "Menu\n" ;
+      cout << "1 - View profile\n2 - List & Select from my reading history\n3 - List available book categories\n4 - logout\n" ;
+      cout << "Enter your choice: " ;
+      int choice ;
+      cin >> choice ;
+      cout << '\n' ;
+      if ( cin.fail() || !( choice >= 1 && choice <= 4 ) )
+      {
+            cout << "Please enter a number in range [ 1 - 4 ]!\n" ;
+            Reader_view( person ) ;
+      }
+      
+      if ( choice == 1 )
+      {
+            cout << "Name: " << person.get_name() << "\n" << "Email: " << person.get_email() << "\n" << "Username: " << person.get_username() << "\n" ;
+            Reader_view( person ) ;
+      }
+      else if ( choice == 2 )
+      {
+            Reading_history( person ) ;
+            Reader_view( person ) ;
+      }
+      else if ( choice == 3 )
+      {
+            View_categories( person ) ;
+            Reader_view( person ) ;
+      }
+      else  
+            return ;
+}
+void Add_book()
+{
+      cout << "Please enter book Details\n" ;
+      book Book ;
+      cin >> Book ;
+      cout << Book.get_category() << '\n' ;
+      books[Book.get_category()].push_back( Book ) ;
+      return ;
+}
+void Admin_view( user &person )
+{
+      cout << "Hello " << person.get_name() << " - " << person.get_role() << " view\n" ;
+      cout << "Menu\n" ;
+      cout << "1 - View profile\n2 - Add book\n3 - List users\n4 - List categories\n5 - log out\n" ;
+      cout << "Enter your choice: " ;
+      int choice ;
+      cin >> choice ;
+      cout << '\n' ;
+      if ( cin.fail() || !( choice >= 1 && choice <= 5 ) )
+      {
+            cout << "Please enter a number in range [ 1 - 5 ]!\n" ;
+            Admin_view( person ) ;
+      }
+      
+      if ( choice == 1 )
+      {
+            cout << "Name: " << person.get_name() << "\n" << "Email: " << person.get_email() << "\n" << "Username: " << person.get_username() << "\n" ;
+            Admin_view( person ) ;
+      }
+      else if ( choice == 2 )
+      {
+            Add_book() ;
+            Admin_view( person ) ;
+      }
+      else if ( choice == 3 )
+      {
+            View_categories( person ) ;
+            Admin_view( person ) ;
+      }
+      else  
+            return ;
+}
+int main()
+{
+      add_admins() ;
+      add_books_Cat() ;
+      while ( true )
+      {
+            int id ;
+            id = start() ;
+            user &person = users[id] ;
+            if ( person.get_role() == "Reader" )
+                  Reader_view( person ) ;
+            else
+                  Admin_view( person ) ;
+      }
+      // else
+      //       Admin_view( person ) ;
+      
+
+
+
+      return 0 ;
+}
