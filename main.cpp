@@ -16,7 +16,7 @@ class book
             string category ;
             int number_of_pages ;
             vector<string> pages ;
-            vector<int> readers ;
+            vector<user> readers ;
       public:
             book()
             {
@@ -52,6 +52,10 @@ class book
             int get_category ()
             {
                   return cat_num[category] ;
+            }
+            vector<user> &get_readers()
+            {
+                  return readers ;
             }
             // void add_reader ( )
             friend istream &operator >> ( istream &in, book &New ) ;
@@ -189,6 +193,8 @@ int login ()
       cout << "Enter password: ", cin >> password ;
       if ( cin.fail() || data_base.find({username, password}) == data_base.end() )
       {
+            cin.clear() ;
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
             cout << "Wrong username or password!\n" ;
             return -1 ;
       }
@@ -203,6 +209,8 @@ user &signup ()
       cout << "Enter email: ", cin >> email ;
       if ( cin.fail() )
       {
+            cin.clear() ;
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
             cout << "Please insert valid data!\n" ;
             return signup() ;
       }
@@ -222,16 +230,25 @@ user &start()
       cin >> choice ;
       cout << '\n' ;
       user *person ;
+      if ( cin.fail() || !( choice >= 1 && choice <= 3 ) )
+      {
+            cin.clear() ;
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            return start() ;
+      }
       if ( choice == 1 )
       {
-            if ( login() == -1 )
-                  return start() ;
-            return users[login()] ;
+            int num = login() ;
+            if ( num == -1 )
+                  start() ;
+            person = &users[num] ;
       }
       else if ( choice == 2 )
-            return signup() ;
+            person = &signup() ;
       else
             exit(0) ;
+
+      return *person ;
 }
 void add_admins()
 {
@@ -285,6 +302,8 @@ void start_session( user &person, int num )
             cout << '\n' ;
             if ( cin.fail() || ! ( choice >= 1 && choice <= CH ) )
             {
+                  cin.clear() ;
+                  cin.ignore(numeric_limits<streamsize>::max(), '\n');
                   cout << "Please enter a number in range [ 1 - " << CH << " ]!\n" ;
                   continue;
             }
@@ -311,6 +330,8 @@ void select_book ( user &person, book &Book, int category )
       cout << '\n' ;
       if ( cin.fail() || !( choice == 1 || choice == 2 ) )
       {
+            cin.clear() ;
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
             cout << "Please enter a number in range [ 1 - 2 ]!\n" ;
             select_book( person, Book, category ) ;
       }
@@ -319,6 +340,7 @@ void select_book ( user &person, book &Book, int category )
       else
       {
             person.add_session( session(categories[category], Book, 1) ) ; 
+            Book.get_readers().push_back( person ) ;
             cout << person.get_my_sessions().size()-1 << '\n' ;
             start_session( person, person.get_my_sessions().size()-1 ) ;
       }
@@ -339,6 +361,8 @@ void list_books( user &person, int category )
       cout << '\n' ;
       if ( cin.fail() || !( choice >= 1 && choice <= number + 1 ) )
       {
+            cin.clear() ;
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
             cout << "Please enter a number in range [ 1 - " << number + 1 << " ]!\n" ;
             list_books( person, category ) ;
       }
@@ -366,6 +390,8 @@ void View_categories( user &person )
       cout << '\n' ;
       if ( cin.fail() || !( choice >= 1 && choice <= number + 1 ) )
       {
+            cin.clear() ;
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
             cout << "Please enter a number in range [ 1 - " << number + 1 << " ]!\n" ;
             View_categories( person ) ;
       }
@@ -389,6 +415,8 @@ void Reading_history ( user &person )
             cout << '\n' ;
             if ( cin.fail() || !( choice == 1 || choice == 2 ) )
             {
+                  cin.clear() ;
+                  cin.ignore(numeric_limits<streamsize>::max(), '\n');
                   cout << "Please enter a number in range [ 1 - 2 ]!\n" ;
                   continue;
             }
@@ -418,6 +446,8 @@ void Reading_history ( user &person )
       cout << '\n' ;
       if ( cin.fail() || !( choice >= 1 || choice <= number + 1 ) )
       {
+            cin.clear() ;
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
             cout << "Please enter a number in range [ 1 - " << number + 1 << " ]!\n" ;
       }
       if ( choice == number + 1 )
@@ -440,6 +470,8 @@ void Reader_view( user &person )
       cout << '\n' ;
       if ( cin.fail() || !( choice >= 1 && choice <= 4 ) )
       {
+            cin.clear() ;
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
             cout << "Please enter a number in range [ 1 - 4 ]!\n" ;
             Reader_view( person ) ;
       }
@@ -470,10 +502,35 @@ void Add_book()
       books[Book.get_category()].push_back( Book ) ;
       return ;
 }
+void show_sessions( user &person )
+{
+      int number = person.get_my_sessions().size() ;
+      if ( number == 0 )
+      {
+            cout << "This user has no sessions!\n" ;
+            return ;
+      }
+      cout << "There are found " << number << " " << ( number == 1 ? "user\n" : "users\n" ) ;
+      for ( int i = 0 ; i < number ; i++ )
+      {
+            cout << i+1 << " : " << person.get_my_sessions()[i] << '\n' ;
+      }
+      cout << "\nEnter 0 for the previous page : " ;
+      int choice ;
+      cin >> choice ;
+      if ( cin.fail() || choice != 0 )
+      {
+            cin.clear() ;
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            cout << "Not valid choice!\n" ;
+            show_sessions( person ) ;
+      }
+      return ;
+}
 void list_users()
 {
       int number = users.size() ;
-      cout << "There are found " << number << ( number == 1 ? "user\n" : "users\n" ) ;
+      cout << "There are found " << number << " " << ( number == 1 ? "user\n" : "users\n" ) ;
       for ( int i = 0 ; i < number ; i++ )
       {
             cout << i+1 << " : " << users[i] << '\n' ;
@@ -485,6 +542,8 @@ void list_users()
             cin >> choice ;
             if ( cin.fail() || choice != 1 )
             {
+                  cin.clear() ;
+                  cin.ignore(numeric_limits<streamsize>::max(), '\n');
                   "Not valid choice!\n" ;
                   list_users() ;
             }
@@ -496,8 +555,10 @@ void list_users()
       cin >> choice ;
       if ( choice == 0 )
             return ;
-      else if ( cin.fail() || !( choice >= 4 && choice <= number ) )
+      else if ( cin.fail() || !( choice >= 1 && choice <= number ) )
       {
+            cin.clear() ;
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
             cout << "Not valid choice!\n" ;
             list_users() ;
       }
@@ -506,10 +567,62 @@ void list_users()
             cout << "You can't choose from admins!\n";
             list_users() ;
       }
-      
-
+      show_sessions( users[choice-1] ) ;
+      list_users() ;
       return ;
 
+}
+void category_datails( int num )
+{
+      int number = books[num].size() ;
+      cout << "There are found " << number << " " << ( number == 1 ? "book\n" : "books\n" ) ;
+      for ( int i = 0 ; i < number ; i++ )
+      {
+            cout << i+1 << " : " << books[num][i].get_name() << " " ;
+            if ( !books[num][i].get_readers().empty() )
+            {
+                  if ( books[num][i].get_readers().size() == 1 )
+                        cout << " ( 1 user has sessions with this book ) " ;
+                  else
+                        cout << " ( " << books[num][i].get_readers().size() << " users have sessions with this book )" ;
+            }
+            cout << '\n' ;
+      }
+      cout << "\nEnter 0 for the previous page : " ;
+      int choice ;
+      cin >> choice ;
+      if ( cin.fail() || choice != 0 )
+      {
+            cin.clear() ;
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            cout << "Not valid choice!\n" ;
+            category_datails( num ) ;
+      }
+      return ;
+}
+void list_categories()
+{
+      int number = categories.size() ;
+      cout << "There are found " << number << " " << ( number == 1 ? "category\n" : "categories\n" ) ;
+      for ( int i = 0 ; i < number ; i++ )
+      {
+            cout << i+1 << " : " << categories[i] << '\n' ;
+      }
+      cout << "Enter your choice with the category's number to show category's details, or enter 0 for the previous page\n" ;
+      cout << "Enter your choice " ;
+      int choice ;
+      cin >> choice ;
+      if ( choice == 0 )
+            return ;
+      else if ( cin.fail() || !( choice >= 1 && choice <= number ) )
+      {
+            cin.clear() ;
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            cout << "Not valid choice!\n" ;
+            list_categories() ;
+      }
+      category_datails( cat_num[categories[choice-1]] ) ;
+      list_categories() ;
 }
 void Admin_view( user &person )
 {
@@ -522,6 +635,8 @@ void Admin_view( user &person )
       cout << '\n' ;
       if ( cin.fail() || !( choice >= 1 && choice <= 5 ) )
       {
+            cin.clear() ;
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
             cout << "Please enter a number in range [ 1 - 5 ]!\n" ;
             Admin_view( person ) ;
       }
@@ -539,6 +654,11 @@ void Admin_view( user &person )
       else if ( choice == 3 )
       {
             list_users() ;
+            Admin_view( person ) ;
+      }
+      else if ( choice == 4 )
+      {
+            list_categories() ;
             Admin_view( person ) ;
       }
       else  
