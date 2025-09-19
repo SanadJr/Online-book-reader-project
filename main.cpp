@@ -71,7 +71,7 @@ istream &operator >> ( istream &in, book &New )
       string page ;
       for ( int i = 0 ; i < New.number_of_pages ; i++ )
       {
-            cout << "Page #1 : " ;
+            cout << "Page #" << i+1 << ": " ;
             in >> page ;
             New.pages.push_back( page ) ;
       }
@@ -130,6 +130,10 @@ class user
             bool role ; //admin --> ( 1 ) or reader --> ( 0 ).
             vector<session> my_sessions ;
       public:
+            user()
+            {
+
+            }
             user ( string name, bool role, string email, string username )
             {
                   this->name = name ;
@@ -161,13 +165,22 @@ class user
             void add_session ( session New )
             {
                   my_sessions.push_back( New ) ;
-                  cout << "Debug " << my_sessions.size() << '\n' ;
             }
             vector<session> &get_my_sessions ()
             {
                   return my_sessions ;
             }
+            friend ostream &operator <<( ostream &out, user P ) ;
 } ;
+ostream &operator <<( ostream &out, user P )
+{
+      out << P.name << " -- " << P.email << " - " <<  P.username << " - " << P.get_role() ;
+      if ( P.role == 0 )
+      {
+            out << " ( This user has " << P.get_my_sessions().size() << " sessions )." ;
+      }
+      return out ;
+}
 vector<user> users ;
 int login ()
 {
@@ -181,7 +194,7 @@ int login ()
       }
       return data_base[{username, password}] ;
 }
-int signup ()
+user &signup ()
 {
       string username, password, name, email ;
       cout << "Enter user name: ", cin >> username ;
@@ -191,14 +204,14 @@ int signup ()
       if ( cin.fail() )
       {
             cout << "Please insert valid data!\n" ;
-            signup() ;
+            return signup() ;
       }
-      user New_user ( name, 0, email, username ) ;
-      users.push_back( New_user ) ;
+      users.push_back( {name, 0, email, username} ) ;
+      user &New = users[users.size() - 1] ;
       data_base[{username, password}] = users.size() - 1 ;
-      return users.size() - 1 ;
+      return New ;
 }
-int start()
+user &start()
 {
       cout << "**_*____________^_^_____________*_**\n" ;
       cout << "Welcome to SANAD online book reader!\n" ;
@@ -208,19 +221,17 @@ int start()
       int choice ;
       cin >> choice ;
       cout << '\n' ;
-      int id ;
+      user *person ;
       if ( choice == 1 )
       {
-            id = login() ;
-            if ( id == -1 )
-                  start() ;
+            if ( login() == -1 )
+                  return start() ;
+            return users[login()] ;
       }
       else if ( choice == 2 )
-            id = signup() ;
+            return signup() ;
       else
             exit(0) ;
-
-      return id ;
 }
 void add_admins()
 {
@@ -456,9 +467,49 @@ void Add_book()
       cout << "Please enter book Details\n" ;
       book Book ;
       cin >> Book ;
-      cout << Book.get_category() << '\n' ;
       books[Book.get_category()].push_back( Book ) ;
       return ;
+}
+void list_users()
+{
+      int number = users.size() ;
+      cout << "There are found " << number << ( number == 1 ? "user\n" : "users\n" ) ;
+      for ( int i = 0 ; i < number ; i++ )
+      {
+            cout << i+1 << " : " << users[i] << '\n' ;
+      }
+      if ( number == 3 )
+      {
+            cout << "Enter number 1 for the previous page: " ;
+            int choice ;
+            cin >> choice ;
+            if ( cin.fail() || choice != 1 )
+            {
+                  "Not valid choice!\n" ;
+                  list_users() ;
+            }
+            return ;
+      }
+      cout << "Enter your choice with the reader's number to show his current sessions, or enter 0 for the previous page\n" ;
+      cout << "Enter your choice " ;
+      int choice ;
+      cin >> choice ;
+      if ( choice == 0 )
+            return ;
+      else if ( cin.fail() || !( choice >= 4 && choice <= number ) )
+      {
+            cout << "Not valid choice!\n" ;
+            list_users() ;
+      }
+      else if ( users[choice-1].get_role() == "Admin" )
+      {
+            cout << "You can't choose from admins!\n";
+            list_users() ;
+      }
+      
+
+      return ;
+
 }
 void Admin_view( user &person )
 {
@@ -487,7 +538,7 @@ void Admin_view( user &person )
       }
       else if ( choice == 3 )
       {
-            View_categories( person ) ;
+            list_users() ;
             Admin_view( person ) ;
       }
       else  
@@ -500,8 +551,7 @@ int main()
       while ( true )
       {
             int id ;
-            id = start() ;
-            user &person = users[id] ;
+            user &person = start() ;
             if ( person.get_role() == "Reader" )
                   Reader_view( person ) ;
             else
